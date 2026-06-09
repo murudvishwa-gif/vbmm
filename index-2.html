@@ -1,0 +1,2292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stackly — Advanced Cybersecurity <a href="404page.html">404</a></title>
+
+<link href="404page.html" rel="stylesheet">
+<style>
+/* ============================================================
+   ROOT & RESET
+   ============================================================ */
+:root {
+  --neon-green: #00ff9f;
+  --neon-cyan: #00eeff;
+  --neon-red: #ff2d55;
+  --neon-amber: #ffb800;
+  --dark-bg: #020b12;
+  --dark-surface: #050f1a;
+  --dark-card: #071522;
+  --grid-line: rgba(0,255,159,0.06);
+  --text-primary: #e0f7fa;
+  --text-secondary: #7faabc;
+  --text-dim: #2d5a6e;
+  --border-glow: rgba(0,255,159,0.3);
+  --font-display: 'Orbitron', monospace;
+  --font-body: 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --nav-height: 72px;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--dark-bg);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.7;
+  overflow-x: hidden;
+  /* FIX: Remove cursor:none on body to prevent mobile issues */
+}
+
+/* ─── CUSTOM CURSOR (desktop only) ─── */
+.cursor, .cursor-ring {
+  display: none;
+}
+@media (pointer: fine) {
+  body { cursor: none; }
+  .cursor {
+    display: block;
+    position: fixed;
+    width: 12px; height: 12px;
+    background: var(--neon-green);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.1s ease, opacity 0.2s;
+    box-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green);
+    transform: translate(-50%, -50%);
+  }
+  .cursor-ring {
+    display: block;
+    position: fixed;
+    width: 36px; height: 36px;
+    border: 1px solid rgba(0,255,159,0.5);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transition: transform 0.25s ease, width 0.2s, height 0.2s;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--dark-bg); }
+::-webkit-scrollbar-thumb { background: var(--neon-green); border-radius: 2px; }
+
+/* ─── BACKGROUND ─── */
+.grid-bg {
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 60px 60px;
+  z-index: 0; pointer-events: none;
+}
+.scanlines {
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+  z-index: 1; pointer-events: none;
+}
+
+/* ============================================================
+   NAV  — FIX: z-index, mobile hamburger, Login/Signup
+   ============================================================ */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5%;
+  height: var(--nav-height);
+  background: rgba(2,11,18,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0,255,159,0.1);
+}
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--neon-green);
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px rgba(0,255,159,0.5);
+  text-decoration: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.nav-logo span { color: var(--neon-cyan); }
+
+.nav-center {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+  align-items: center;
+}
+.nav-center a {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: color 0.2s;
+  position: relative;
+  white-space: nowrap;
+}
+.nav-center a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px; left: 0; right: 0;
+  height: 1px;
+  background: var(--neon-green);
+  transform: scaleX(0);
+  transition: transform 0.2s;
+}
+.nav-center a:hover { color: var(--neon-green); }
+.nav-center a:hover::after { transform: scaleX(1); }
+
+/* Auth buttons */
+.nav-auth {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+.btn-login {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--neon-cyan);
+  background: transparent;
+  border: 1px solid rgba(0,238,255,0.35);
+  padding: 0.45rem 1.1rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s, color 0.2s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.btn-login:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 14px rgba(0,238,255,0.3);
+  color: #fff;
+}
+.btn-signup {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--dark-bg);
+  background: var(--neon-green);
+  border: none;
+  padding: 0.48rem 1.2rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  transition: box-shadow 0.2s, background 0.2s;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-block;
+}
+.btn-signup:hover { box-shadow: 0 0 20px rgba(0,255,159,0.6); background: #00ffb3; }
+
+/* Hamburger */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  padding: 6px;
+  z-index: 1010;
+}
+.hamburger span {
+  display: block;
+  width: 24px; height: 2px;
+  background: var(--neon-green);
+  transition: transform 0.3s, opacity 0.3s;
+}
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* Mobile Nav Overlay */
+.mobile-nav-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(2,11,18,0.98);
+  z-index: 999;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2.5rem;
+  padding: 2rem;
+}
+.mobile-nav-overlay.open { display: flex; }
+.mobile-nav-overlay a {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  transition: color 0.2s;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(0,255,159,0.08);
+  width: 100%;
+  text-align: center;
+  max-width: 300px;
+}
+.mobile-nav-overlay a:hover { color: var(--neon-green); }
+.mobile-nav-auth {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+/* Back button for mobile */
+.mobile-back-btn {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  background: rgba(7,21,34,0.95);
+  border: 1px solid rgba(0,255,159,0.25);
+  color: var(--neon-green);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  padding: 0.7rem 1.8rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.mobile-back-btn:hover { box-shadow: 0 0 16px rgba(0,255,159,0.3); border-color: rgba(0,255,159,0.5); }
+@media (max-width: 768px) {
+  .mobile-back-btn { display: block; }
+}
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(2,11,18,0.92);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--dark-card);
+  border: 1px solid rgba(0,255,159,0.25);
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+  box-shadow: 0 0 60px rgba(0,255,159,0.08);
+}
+.modal-close {
+  position: absolute;
+  top: 1rem; right: 1rem;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  line-height: 1;
+}
+.modal-close:hover { color: var(--neon-green); }
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--neon-green);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+.modal-subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  margin-bottom: 2rem;
+}
+.modal-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(0,255,159,0.1);
+  margin-bottom: 1.8rem;
+}
+.modal-tab {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 0.6rem 1.5rem;
+  cursor: pointer;
+  color: var(--text-dim);
+  border: none;
+  background: none;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+.modal-tab.active {
+  color: var(--neon-green);
+  border-bottom-color: var(--neon-green);
+}
+.modal-form { display: flex; flex-direction: column; gap: 1rem; }
+.modal-form input {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(0,255,159,0.15);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 0.75rem 1rem;
+  letter-spacing: 1px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.modal-form input::placeholder { color: var(--text-dim); }
+.modal-form input:focus { border-color: rgba(0,255,159,0.4); }
+.modal-form-btn {
+  background: var(--neon-green);
+  color: var(--dark-bg);
+  border: none;
+  padding: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+  transition: box-shadow 0.2s, background 0.2s;
+  margin-top: 0.5rem;
+}
+.modal-form-btn:hover { box-shadow: 0 0 24px rgba(0,255,159,0.5); background: #00ffb3; }
+.modal-divider {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  margin: 0.5rem 0;
+}
+.modal-success {
+  text-align: center;
+  padding: 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--neon-green);
+  letter-spacing: 2px;
+  border: 1px solid rgba(0,255,159,0.2);
+  display: none;
+}
+
+/* ============================================================
+   SECTIONS — FIX: proper z-index stacking, no overlaps
+   ============================================================ */
+section {
+  position: relative;
+  z-index: 2;
+  /* FIX: consistent padding, no gaps that cause overlap */
+  padding: 100px 8%;
+}
+
+/* ─── HERO ─── */
+#hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: calc(var(--nav-height) + 60px);
+  overflow: hidden;
+}
+#particle-canvas {
+  position: absolute; inset: 0;
+  z-index: 0; pointer-events: none;
+}
+.hero-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--neon-green);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  opacity: 0;
+  animation: fadeSlideUp 0.8s 0.3s ease forwards;
+  position: relative; z-index: 1;
+}
+.hero-label::before { content: '> '; color: var(--neon-cyan); }
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 6vw, 5.5rem);
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -1px;
+  color: var(--text-primary);
+  opacity: 0;
+  animation: fadeSlideUp 0.8s 0.5s ease forwards;
+  max-width: 820px;
+  position: relative; z-index: 1;
+}
+.hero-title .accent  { color: var(--neon-green); text-shadow: 0 0 30px rgba(0,255,159,0.4); }
+.hero-title .accent2 { color: var(--neon-cyan);  text-shadow: 0 0 30px rgba(0,238,255,0.4); }
+.hero-sub {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  max-width: 560px;
+  margin-top: 1.5rem;
+  opacity: 0;
+  animation: fadeSlideUp 0.8s 0.7s ease forwards;
+  font-weight: 300;
+  line-height: 1.8;
+  position: relative; z-index: 1;
+}
+.hero-ctas {
+  display: flex;
+  gap: 1.2rem;
+  margin-top: 2.5rem;
+  opacity: 0;
+  animation: fadeSlideUp 0.8s 0.9s ease forwards;
+  align-items: center;
+  flex-wrap: wrap;
+  position: relative; z-index: 1;
+}
+.btn-primary {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--dark-bg);
+  background: var(--neon-green);
+  border: none;
+  padding: 0.9rem 2rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+  transition: box-shadow 0.2s, transform 0.15s;
+  font-weight: 700;
+  display: inline-block;
+  text-decoration: none;
+}
+.btn-primary:hover {
+  box-shadow: 0 0 30px rgba(0,255,159,0.6), 0 0 60px rgba(0,255,159,0.2);
+  transform: translateY(-2px);
+}
+.btn-secondary {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--neon-cyan);
+  background: transparent;
+  border: 1px solid rgba(0,238,255,0.4);
+  padding: 0.9rem 2rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  display: inline-block;
+  text-decoration: none;
+}
+.btn-secondary:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 20px rgba(0,238,255,0.3);
+  transform: translateY(-2px);
+}
+
+.hero-stats {
+  display: flex;
+  gap: 3rem;
+  margin-top: 3.5rem;
+  opacity: 0;
+  animation: fadeSlideUp 0.8s 1.1s ease forwards;
+  flex-wrap: wrap;
+  position: relative; z-index: 1;
+}
+.hero-stat { display: flex; flex-direction: column; }
+.stat-num {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 900;
+  color: var(--neon-green);
+  text-shadow: 0 0 15px rgba(0,255,159,0.4);
+}
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 0.2rem;
+}
+
+/* Floating shield */
+.hero-visual {
+  position: absolute;
+  right: 6%; top: 50%;
+  transform: translateY(-50%);
+  width: min(380px, 38vw);
+  opacity: 0;
+  animation: fadeIn 1.2s 1.2s ease forwards, floatShield 6s 2.4s ease-in-out infinite;
+  z-index: 1;
+  pointer-events: none;
+}
+.shield-svg { width: 100%; height: 100%; }
+
+/* Hero scan line */
+.hero-scan {
+  position: absolute; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--neon-green), transparent);
+  opacity: 0.3;
+  animation: scan 4s linear infinite;
+  z-index: 1;
+}
+@keyframes scan { 0%{top:80px;opacity:0} 5%{opacity:0.3} 95%{opacity:0.3} 100%{top:100%;opacity:0} }
+
+/* ─── TICKER ─── */
+#ticker {
+  position: relative; z-index: 2;
+  background: rgba(0,255,159,0.04);
+  border-top: 1px solid rgba(0,255,159,0.1);
+  border-bottom: 1px solid rgba(0,255,159,0.1);
+  overflow: hidden;
+  height: 52px;
+  display: flex;
+  align-items: center;
+}
+.ticker-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--dark-bg);
+  background: var(--neon-green);
+  padding: 0.35rem 1.2rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-weight: 700;
+  flex-shrink: 0;
+  height: 100%;
+  display: flex; align-items: center;
+}
+.ticker-track {
+  display: flex; gap: 0;
+  animation: tickerMove 30s linear infinite;
+  white-space: nowrap;
+}
+/* FIX: pause on hover to prevent auto-scroll feel */
+.ticker-track:hover { animation-play-state: paused; }
+.ticker-item {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+  padding: 0 2rem;
+  border-right: 1px solid rgba(0,255,159,0.1);
+}
+.ticker-item .status-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  margin-right: 6px;
+  animation: pulse-dot 2s infinite;
+}
+.dot-red   { background: var(--neon-red);   box-shadow: 0 0 6px var(--neon-red);   }
+.dot-green { background: var(--neon-green); box-shadow: 0 0 6px var(--neon-green); }
+.dot-amber { background: var(--neon-amber); box-shadow: 0 0 6px var(--neon-amber); }
+@keyframes tickerMove { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+@keyframes pulse-dot  { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ─── SECTION HEADERS ─── */
+.section-header { margin-bottom: 3.5rem; }
+.section-tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--neon-green);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 0.8rem;
+  display: block;
+}
+.section-tag::before { content: '// '; color: var(--text-dim); }
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  font-weight: 900;
+  line-height: 1.12;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+.section-title .hl { color: var(--neon-green); }
+.section-desc {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  max-width: 540px;
+  margin-top: 0.8rem;
+  font-weight: 300;
+}
+
+/* ============================================================
+   SERVICES — FIX: grid properly stacked, no overlap
+   ============================================================ */
+#services {
+  background: var(--dark-surface);
+  /* FIX: Explicit z-index prevents bleed into adjacent sections */
+  z-index: 3;
+}
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5px;
+  background: rgba(0,255,159,0.08);
+  border: 1px solid rgba(0,255,159,0.08);
+  /* FIX: contain overflow */
+  overflow: hidden;
+}
+.service-card {
+  background: var(--dark-card);
+  padding: 2.5rem 2rem;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.3s;
+  cursor: default;
+}
+.service-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(0,255,159,0.04) 0%, transparent 60%);
+  opacity: 0; transition: opacity 0.3s;
+}
+.service-card::after {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0; width: 2px;
+  background: var(--neon-green);
+  transform: scaleY(0); transform-origin: top;
+  transition: transform 0.4s ease;
+}
+.service-card:hover::before { opacity: 1; }
+.service-card:hover::after  { transform: scaleY(1); }
+.service-card:hover { background: rgba(5,20,35,0.9); }
+.service-icon { width: 52px; height: 52px; margin-bottom: 1.5rem; }
+.service-icon svg { width: 100%; height: 100%; }
+.service-num {
+  position: absolute; top: 1.5rem; right: 1.5rem;
+  font-family: var(--font-display);
+  font-size: 3rem; font-weight: 900;
+  color: rgba(0,255,159,0.05); line-height: 1;
+}
+.service-name {
+  font-family: var(--font-display);
+  font-size: 0.9rem; font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 1px;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+.service-desc { font-size: 0.88rem; color: var(--text-secondary); font-weight: 300; line-height: 1.7; }
+
+/* ─── THREAT MAP ─── */
+#threat-map { background: var(--dark-bg); z-index: 3; }
+.map-container {
+  position: relative;
+  background: var(--dark-card);
+  border: 1px solid rgba(0,255,159,0.1);
+  overflow: hidden;
+  height: 400px;
+}
+#map-canvas { width: 100%; height: 100%; display: block; }
+.map-legend { display: flex; gap: 2rem; margin-top: 1.5rem; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 0.5rem; }
+.legend-dot   { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.legend-text  { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-secondary); letter-spacing: 1px; }
+
+/* ─── STATS ─── */
+#stats { background: var(--dark-surface); padding: 80px 8%; z-index: 3; }
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: rgba(0,255,159,0.08);
+}
+.stat-block {
+  background: var(--dark-card);
+  padding: 3rem 2rem;
+  text-align: center;
+  position: relative; overflow: hidden;
+  transition: background 0.3s;
+}
+.stat-block::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--neon-green), transparent);
+  transform: scaleX(0); transition: transform 0.4s ease;
+}
+.stat-block:hover::before { transform: scaleX(1); }
+.stat-block:hover { background: rgba(0,255,159,0.02); }
+.stat-big {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 900;
+  color: var(--neon-green);
+  text-shadow: 0 0 20px rgba(0,255,159,0.3);
+  line-height: 1; margin-bottom: 0.5rem;
+  display: block;
+}
+.stat-unit { font-size: 0.55em; color: var(--neon-cyan); }
+.stat-desc {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  letter-spacing: 2px; text-transform: uppercase;
+}
+
+/* ============================================================
+   HOW IT WORKS — FIX: layout no longer overlaps services
+   ============================================================ */
+#how-it-works { background: var(--dark-bg); z-index: 3; }
+.hiw-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: start;
+}
+.steps-container { position: relative; }
+.steps-line {
+  position: absolute; left: 28px; top: 0; bottom: 0; width: 1px;
+  background: linear-gradient(180deg, var(--neon-green), var(--neon-cyan), transparent);
+  opacity: 0.3;
+}
+.step {
+  display: flex; gap: 2.5rem;
+  padding: 2rem 0;
+  position: relative;
+  opacity: 0; transform: translateX(-30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.step.visible { opacity: 1; transform: translateX(0); }
+.step-num-wrap { flex-shrink: 0; position: relative; display: flex; flex-direction: column; align-items: center; }
+.step-num {
+  width: 56px; height: 56px;
+  border: 1px solid rgba(0,255,159,0.4);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.1rem; font-weight: 900;
+  color: var(--neon-green);
+  background: var(--dark-bg);
+  clip-path: polygon(30% 0%, 100% 0%, 70% 100%, 0% 100%);
+  position: relative; z-index: 1;
+}
+.step-content { padding-top: 0.5rem; }
+.step-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem; font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 1px; margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+.step-desc { font-size: 0.9rem; color: var(--text-secondary); font-weight: 300; }
+.step-badge {
+  display: inline-block; margin-top: 0.75rem;
+  font-family: var(--font-mono); font-size: 0.65rem;
+  color: var(--neon-cyan);
+  border: 1px solid rgba(0,238,255,0.2);
+  padding: 0.2rem 0.7rem;
+  letter-spacing: 2px; text-transform: uppercase;
+}
+
+/* Threat landscape panel */
+.threat-panel {
+  background: var(--dark-card);
+  border: 1px solid rgba(0,255,159,0.1);
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+}
+.threat-panel-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--neon-green);
+  letter-spacing: 3px; margin-bottom: 1.5rem;
+  text-transform: uppercase;
+}
+.threat-bar-wrap { margin-bottom: 1.2rem; }
+.threat-bar-label {
+  display: flex; justify-content: space-between;
+  font-family: var(--font-mono); font-size: 0.72rem;
+  color: var(--text-secondary); letter-spacing: 1px;
+  margin-bottom: 0.4rem;
+}
+.threat-bar-track {
+  background: rgba(0,255,159,0.05);
+  height: 4px;
+  position: relative; overflow: hidden;
+}
+.threat-bar-fill {
+  height: 100%;
+  transition: width 1s ease;
+}
+.status-panel {
+  background: var(--dark-card);
+  border: 1px solid rgba(0,255,159,0.1);
+  padding: 2rem;
+}
+.status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.status-item {
+  text-align: center; padding: 1rem;
+  border: 1px solid rgba(0,255,159,0.08);
+}
+.status-val {
+  font-family: var(--font-display);
+  font-size: 1.6rem; font-weight: 900;
+  line-height: 1;
+}
+.status-key {
+  font-family: var(--font-mono);
+  font-size: 0.62rem; color: var(--text-dim);
+  letter-spacing: 2px; margin-top: 0.3rem;
+}
+
+/* ─── TERMINAL ─── */
+#terminal-section { background: var(--dark-surface); z-index: 3; }
+.terminal {
+  background: #000d14;
+  border: 1px solid rgba(0,255,159,0.2);
+  overflow: hidden;
+  max-width: 800px;
+  box-shadow: 0 0 40px rgba(0,255,159,0.08);
+}
+.terminal-bar {
+  background: #010d16;
+  padding: 0.7rem 1rem;
+  display: flex; align-items: center; gap: 0.5rem;
+  border-bottom: 1px solid rgba(0,255,159,0.1);
+}
+.t-dot { width: 10px; height: 10px; border-radius: 50%; }
+.t-red   { background: #ff4444; }
+.t-amber { background: #ffaa00; }
+.t-green { background: var(--neon-green); }
+.terminal-title {
+  font-family: var(--font-mono);
+  font-size: 0.7rem; color: var(--text-dim);
+  letter-spacing: 2px; margin: 0 auto;
+}
+.terminal-body {
+  padding: 1.5rem;
+  min-height: 280px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 2;
+  overflow-y: auto;
+  max-height: 320px;
+}
+.t-line  { display: block; color: var(--text-secondary); }
+.t-cmd   { color: var(--neon-green); }
+.t-path  { color: var(--neon-cyan); }
+.t-ok    { color: var(--neon-green); }
+.t-warn  { color: var(--neon-amber); }
+.t-err   { color: var(--neon-red); }
+.t-dim   { color: var(--text-dim); }
+.cursor-blink {
+  display: inline-block; width: 8px; height: 14px;
+  background: var(--neon-green);
+  animation: blink 1s step-end infinite;
+  vertical-align: middle; margin-left: 2px;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ============================================================
+   FEATURES — FIX: standalone section, no overlap
+   ============================================================ */
+#features { background: var(--dark-bg); z-index: 3; }
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+.feature-card {
+  background: var(--dark-card);
+  border: 1px solid rgba(0,255,159,0.07);
+  padding: 2rem;
+  display: flex; gap: 1.5rem;
+  align-items: flex-start;
+  transition: border-color 0.3s, background 0.3s;
+  position: relative; overflow: hidden;
+  cursor: default;
+}
+.feature-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 0% 50%, rgba(0,255,159,0.04), transparent 60%);
+  opacity: 0; transition: opacity 0.4s;
+}
+.feature-card:hover::before { opacity: 1; }
+.feature-card:hover { border-color: rgba(0,255,159,0.2); background: rgba(5,20,30,0.9); }
+.feature-icon-wrap {
+  flex-shrink: 0; width: 44px; height: 44px;
+  border: 1px solid rgba(0,255,159,0.2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--neon-green);
+}
+.feature-icon-wrap svg { width: 22px; height: 22px; }
+.feature-name {
+  font-family: var(--font-display);
+  font-size: 0.85rem; font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 1px; text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+.feature-desc { font-size: 0.86rem; color: var(--text-secondary); font-weight: 300; }
+
+/* ============================================================
+   PRICING — FIX: standalone section, no overlap
+   ============================================================ */
+#pricing { background: var(--dark-surface); z-index: 3; }
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5px;
+  background: rgba(0,255,159,0.06);
+}
+.price-card {
+  background: var(--dark-card);
+  padding: 2.5rem 2rem;
+  position: relative;
+  transition: background 0.3s;
+  cursor: default;
+}
+.price-card.featured {
+  background: rgba(0,255,159,0.03);
+  border: 1px solid rgba(0,255,159,0.2);
+  z-index: 1;
+}
+.price-tag {
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  font-family: var(--font-mono); font-size: 0.65rem;
+  color: var(--dark-bg);
+  background: var(--neon-green);
+  padding: 0.25rem 1rem;
+  letter-spacing: 2px; text-transform: uppercase;
+  white-space: nowrap; font-weight: 700;
+}
+.price-plan {
+  font-family: var(--font-display);
+  font-size: 0.8rem; font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 3px; text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+.price-amount {
+  font-family: var(--font-display);
+  font-size: 2.8rem; font-weight: 900;
+  color: var(--text-primary);
+  line-height: 1; margin-bottom: 0.3rem;
+}
+.price-amount .dollar {
+  font-size: 1.4rem; vertical-align: top;
+  margin-top: 0.3rem; display: inline-block;
+  color: var(--neon-green);
+}
+.price-period {
+  font-family: var(--font-mono);
+  font-size: 0.7rem; color: var(--text-dim);
+  letter-spacing: 2px; margin-bottom: 2rem;
+}
+.price-features {
+  list-style: none; margin-bottom: 2rem;
+}
+.price-features li {
+  font-size: 0.88rem; color: var(--text-secondary);
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(0,255,159,0.05);
+  display: flex; align-items: center; gap: 0.6rem;
+}
+.price-features li::before { content: '›'; color: var(--neon-green); font-size: 1.1rem; }
+.price-btn {
+  display: block; width: 100%;
+  font-family: var(--font-mono); font-size: 0.78rem;
+  letter-spacing: 2px; text-transform: uppercase;
+  padding: 0.8rem; text-align: center;
+  cursor: pointer; font-weight: 700;
+  transition: box-shadow 0.2s, background 0.2s, border-color 0.2s;
+  border: none;
+  text-decoration: none;
+}
+.price-btn-outline {
+  background: transparent;
+  border: 1px solid rgba(0,255,159,0.25);
+  color: var(--neon-green);
+}
+.price-btn-outline:hover { border-color: var(--neon-green); box-shadow: 0 0 16px rgba(0,255,159,0.2); }
+.price-btn-filled {
+  background: var(--neon-green);
+  color: var(--dark-bg);
+  clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+}
+.price-btn-filled:hover { box-shadow: 0 0 24px rgba(0,255,159,0.5); background: #00ffb3; }
+
+/* ─── TESTIMONIALS ─── */
+#testimonials { background: var(--dark-bg); z-index: 3; }
+.testi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+.testi-card {
+  background: var(--dark-card);
+  border: 1px solid rgba(0,255,159,0.07);
+  padding: 2rem;
+  position: relative;
+  transition: border-color 0.3s;
+}
+.testi-card:hover { border-color: rgba(0,255,159,0.18); }
+.testi-quote {
+  font-family: var(--font-display);
+  font-size: 2rem; color: var(--neon-green);
+  opacity: 0.3; line-height: 1; margin-bottom: 1rem;
+}
+.testi-text {
+  font-size: 0.9rem; color: var(--text-secondary);
+  font-weight: 300; line-height: 1.8; margin-bottom: 1.5rem;
+}
+.testi-author { display: flex; align-items: center; gap: 0.75rem; }
+.testi-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 0.75rem; font-weight: 900;
+  color: var(--dark-bg);
+  flex-shrink: 0;
+}
+.testi-name { font-family: var(--font-display); font-size: 0.75rem; color: var(--text-primary); letter-spacing: 1px; }
+.testi-role { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-dim); letter-spacing: 1px; }
+
+/* ─── CTA SECTION ─── */
+#cta-section {
+  background: var(--dark-surface); z-index: 3;
+  text-align: center;
+}
+.cta-box {
+  max-width: 640px; margin: 0 auto;
+  border: 1px solid rgba(0,255,159,0.15);
+  padding: 4rem 3rem;
+  background: var(--dark-card);
+  position: relative; overflow: hidden;
+}
+.cta-box::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(0,255,159,0.06), transparent 60%);
+  pointer-events: none;
+}
+.cta-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 900; color: var(--text-primary);
+  letter-spacing: -0.5px; margin-bottom: 1rem;
+}
+.cta-title .hl { color: var(--neon-green); }
+.cta-desc {
+  font-size: 0.95rem; color: var(--text-secondary);
+  font-weight: 300; margin-bottom: 2rem;
+}
+.cta-form { display: flex; gap: 0; max-width: 420px; margin: 0 auto; }
+.cta-email {
+  flex: 1;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(0,255,159,0.2);
+  border-right: none;
+  color: var(--text-primary);
+  font-family: var(--font-mono); font-size: 0.8rem;
+  padding: 0.8rem 1rem; outline: none;
+  transition: border-color 0.2s;
+}
+.cta-email::placeholder { color: var(--text-dim); }
+.cta-email:focus { border-color: rgba(0,255,159,0.4); }
+.cta-submit {
+  background: var(--neon-green); color: var(--dark-bg);
+  border: none; padding: 0.8rem 1.5rem;
+  font-family: var(--font-mono); font-size: 0.78rem;
+  font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; cursor: pointer;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  transition: box-shadow 0.2s, background 0.2s;
+  white-space: nowrap;
+}
+.cta-submit:hover { box-shadow: 0 0 20px rgba(0,255,159,0.4); background: #00ffb3; }
+
+/* ============================================================
+   FOOTER — FIX: Stackly button + full footer
+   ============================================================ */
+footer {
+  background: var(--dark-bg);
+  border-top: 1px solid rgba(0,255,159,0.08);
+  padding: 60px 8% 30px;
+  position: relative; z-index: 3;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 3rem;
+  padding-bottom: 3rem;
+  border-bottom: 1px solid rgba(0,255,159,0.06);
+  margin-bottom: 2rem;
+}
+.footer-brand {}
+.footer-logo {
+  font-family: var(--font-display);
+  font-size: 1.3rem; font-weight: 900;
+  color: var(--neon-green);
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px rgba(0,255,159,0.4);
+  margin-bottom: 1rem;
+  display: block;
+}
+.footer-logo span { color: var(--neon-cyan); }
+.footer-tagline {
+  font-size: 0.88rem; color: var(--text-secondary);
+  font-weight: 300; line-height: 1.7;
+  max-width: 280px; margin-bottom: 1.5rem;
+}
+/* FIX: Stackly button — working link */
+.stackly-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0,255,159,0.07);
+  border: 1px solid rgba(0,255,159,0.2);
+  color: var(--neon-green);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 0.55rem 1.2rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.stackly-btn:hover {
+  background: rgba(0,255,159,0.12);
+  border-color: var(--neon-green);
+  box-shadow: 0 0 16px rgba(0,255,159,0.2);
+}
+.stackly-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+.footer-col-title {
+  font-family: var(--font-display);
+  font-size: 0.78rem; font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 1.2rem;
+}
+.footer-links { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+.footer-links a {
+  font-family: var(--font-mono);
+  font-size: 0.75rem; color: var(--text-secondary);
+  text-decoration: none; letter-spacing: 1px;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--neon-green); }
+
+.footer-bottom {
+  display: flex; justify-content: space-between;
+  align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.footer-copy {
+  font-family: var(--font-mono);
+  font-size: 0.68rem; color: var(--text-dim);
+  letter-spacing: 1px;
+}
+.footer-socials { display: flex; gap: 0.8rem; }
+.social-btn {
+  width: 34px; height: 34px;
+  border: 1px solid rgba(0,255,159,0.15);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  text-decoration: none; color: var(--text-dim);
+  font-size: 0.75rem;
+}
+.social-btn:hover { border-color: var(--neon-green); box-shadow: 0 0 12px rgba(0,255,159,0.2); color: var(--neon-green); }
+
+/* ─── REVEAL ANIMATIONS ─── */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* ─── KEYFRAMES ─── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes floatShield {
+  0%,100% { transform: translateY(-50%) translateY(0); }
+  50%      { transform: translateY(-50%) translateY(-16px); }
+}
+@keyframes rotateRing        { from{transform:rotate(0deg)}   to{transform:rotate(360deg)} }
+@keyframes rotateRingReverse { from{transform:rotate(0deg)}   to{transform:rotate(-360deg)} }
+
+/* ============================================================
+   RESPONSIVE — FIX: all overlapping on mobile resolved
+   ============================================================ */
+@media (max-width: 1100px) {
+  .hero-visual { display: none; }
+  .hiw-grid    { grid-template-columns: 1fr; gap: 2.5rem; }
+  .pricing-grid { grid-template-columns: 1fr; }
+  .testi-grid  { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+}
+
+@media (max-width: 900px) {
+  .services-grid  { grid-template-columns: 1fr 1fr; }
+  .features-grid  { grid-template-columns: 1fr; }
+  .stats-grid     { grid-template-columns: repeat(2, 1fr); }
+  .footer-grid    { grid-template-columns: 1fr; gap: 2rem; }
+}
+
+@media (max-width: 768px) {
+  /* Nav: hide desktop links, show hamburger */
+  .nav-center { display: none; }
+  .nav-auth   { display: none; }
+  .hamburger  { display: flex; }
+
+  section { padding: 70px 5%; }
+  #stats  { padding: 60px 5%; }
+
+  .services-grid  { grid-template-columns: 1fr; }
+  .stats-grid     { grid-template-columns: 1fr 1fr; }
+  .pricing-grid   { grid-template-columns: 1fr; gap: 1.5rem; background: none; }
+  .price-card.featured { border-left: none; border-right: none; }
+  .price-tag { font-size: 0.6rem; }
+
+  .hero-stats { gap: 1.8rem; }
+  .stat-num   { font-size: 1.4rem; }
+
+  .cta-form { flex-direction: column; }
+  .cta-email { border-right: 1px solid rgba(0,255,159,0.2); }
+  .cta-submit { clip-path: none; }
+
+  .terminal { max-width: 100%; }
+  .terminal-title { font-size: 0.62rem; }
+}
+
+@media (max-width: 480px) {
+  .hero-title { font-size: clamp(2rem, 10vw, 3rem); }
+  .hero-stats { gap: 1.2rem; }
+  .stat-num   { font-size: 1.2rem; }
+  .hero-ctas  { flex-direction: column; align-items: flex-start; }
+
+  .services-grid { grid-template-columns: 1fr; gap: 0; }
+  .stats-grid    { grid-template-columns: 1fr; }
+  .features-grid { grid-template-columns: 1fr; }
+  .pricing-grid  { grid-template-columns: 1fr; }
+  .testi-grid    { grid-template-columns: 1fr; }
+
+  .footer-grid { grid-template-columns: 1fr; }
+  .footer-bottom { flex-direction: column; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- BACKGROUND -->
+<div class="grid-bg"></div>
+<div class="scanlines"></div>
+
+<!-- ============================================================ -->
+<!-- NAV — Login/Signup + Hamburger + Mobile Overlay             -->
+<!-- ============================================================ -->
+<nav>
+  <a class="nav-logo" href="#hero">STACK<span>LY</span></a>
+
+  <ul class="nav-center" id="navCenter">
+    <li><a href="404page.html">Services</a></li>
+    <li><a href="404page.html">How It Works</a></li>
+    <li><a href="404page.html">Features</a></li>
+    <li><a href="404page.html">Pricing</a></li>
+  </ul>
+
+  <div class="nav-auth">
+    <a href="#" class="btn-login" id="navLoginBtn">
+      <svg viewBox="0 0 16 16" fill="none" width="13" height="13">
+        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm0 1c-3 0-5 1.5-5 3v1h10v-1c0-1.5-2-3-5-3z" fill="currentColor"/>
+      </svg>
+      Login
+    </a>
+    <a href="404page.html" class="btn-signup" id="navSignupBtn">Sign Up</a>
+  </div>
+
+  <div class="hamburger" id="hamburger" aria-label="Open menu" role="button" tabindex="0">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- MOBILE NAV OVERLAY -->
+<div class="mobile-nav-overlay" id="mobileNavOverlay">
+  <a href="404page.html"    class="mobile-nav-link">Services</a>
+  <a href="404page.html" class="mobile-nav-link">How It Works</a>
+  <a href="404page.html"    class="mobile-nav-link">Features</a>
+  <a href="404page.html"     class="mobile-nav-link">Pricing</a>
+  <div class="mobile-nav-auth">
+    <a href="404page.html" class="btn-login" id="mobileLoginBtn">
+      <svg viewBox="0 0 16 16" fill="none" width="13" height="13">
+        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm0 1c-3 0-5 1.5-5 3v1h10v-1c0-1.5-2-3-5-3z" fill="currentColor"/>
+      </svg>
+      Login
+    </a>
+    <a href="404page.html" class="btn-signup" id="mobileSignupBtn">Sign Up</a>
+  </div>
+</div>
+
+<!-- MOBILE BACK BUTTON — FIX: scrolls to top -->
+<button class="mobile-back-btn" id="mobileBackBtn" aria-label="Back to top">↑ Back to Top</button>
+
+<!-- LOGIN / SIGNUP MODAL -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal-box">
+    <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
+    <div class="modal-title">STACK<span style="color:var(--neon-cyan)">LY</span></div>
+    <div class="modal-subtitle">// Secure Access Portal</div>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="tabLogin"  onclick="switchTab('login')">Login</button>
+      <button class="modal-tab"        id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+
+    <!-- Login Form -->
+    <div id="loginForm" class="modal-form">
+      <input type="email" id="loginEmail" placeholder="operator@stackly.io" autocomplete="email">
+      <input type="password" id="loginPass" placeholder="Password" autocomplete="current-password">
+      <button class="modal-form-btn" onclick="handleLogin()">Access System</button>
+      <div class="modal-divider">— or —</div>
+      <button class="modal-form-btn" style="background:transparent;border:1px solid rgba(0,238,255,0.25);color:var(--neon-cyan);clip-path:none;" onclick="switchTab('signup')">Create Account</button>
+    </div>
+
+    <!-- Signup Form -->
+    <div id="signupForm" class="modal-form" style="display:none">
+      <input type="text"  id="signupName"  placeholder="Full Name" autocomplete="name">
+      <input type="email" id="signupEmail" placeholder="operator@stackly.io" autocomplete="email">
+      <input type="password" id="signupPass" placeholder="Create Password (8+ chars)" autocomplete="new-password">
+      <button class="modal-form-btn" onclick="handleSignup()">Deploy Account</button>
+      <div class="modal-divider">— already have access? —</div>
+      <button class="modal-form-btn" style="background:transparent;border:1px solid rgba(0,238,255,0.25);color:var(--neon-cyan);clip-path:none;" onclick="switchTab('login')">Login</button>
+    </div>
+
+    <div class="modal-success" id="modalSuccess">
+      [✓] Authentication successful — Welcome, Operator.
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- HERO                                                          -->
+<!-- ============================================================ -->
+<section id="hero">
+  <canvas id="particle-canvas"></canvas>
+  <div class="hero-scan"></div>
+
+  <div class="hero-label">Advanced Threat Intelligence Platform</div>
+
+  <h1 class="hero-title">
+    <span class="accent">DEFEND</span> THE<br>DIGITAL <span class="accent2">FRONTIER</span>
+  </h1>
+
+  <p class="hero-sub">Real-time threat detection, AI-powered response, and zero-trust architecture — protecting critical infrastructure with military-grade precision.</p>
+
+  <div class="hero-ctas">
+    <button href="404page.html" class="btn-primary"">Start Free Trial</button>
+    <a href="404page.html" class="btn-secondary">How It Works</a>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <span class="stat-num">2.4B+</span>
+      <span class="stat-label">Threats Blocked</span>
+    </div>
+    <div class="hero-stat">
+      <span class="stat-num">99.99%</span>
+      <span class="stat-label">Uptime SLA</span>
+    </div>
+    <div class="hero-stat">
+      <span class="stat-num">0.3ms</span>
+      <span class="stat-label">Response Time</span>
+    </div>
+    <div class="hero-stat">
+      <span class="stat-num">147+</span>
+      <span class="stat-label">Countries</span>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <svg class="shield-svg" viewBox="0 0 400 440" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="200" cy="210" r="170" stroke="rgba(0,255,159,0.1)" stroke-width="1" stroke-dasharray="8 4"/>
+      <g style="transform-origin:200px 210px;animation:rotateRing 20s linear infinite">
+        <circle cx="200" cy="210" r="152" stroke="rgba(0,238,255,0.2)" stroke-width="1" stroke-dasharray="12 8"/>
+        <circle cx="200" cy="58" r="4" fill="#00eeff" opacity="0.8"/>
+      </g>
+      <g style="transform-origin:200px 210px;animation:rotateRingReverse 15s linear infinite">
+        <circle cx="200" cy="210" r="130" stroke="rgba(0,255,159,0.12)" stroke-width="0.5" stroke-dasharray="6 14"/>
+        <circle cx="200" cy="80" r="3" fill="#00ff9f" opacity="0.8"/>
+      </g>
+      <path d="M200 30 L340 90 L340 210 C340 300 200 380 200 380 C200 380 60 300 60 210 L60 90 Z" fill="rgba(2,11,18,0.9)" stroke="rgba(0,255,159,0.5)" stroke-width="1.5"/>
+      <path d="M200 60 L320 110 L320 210 C320 285 200 355 200 355 C200 355 80 285 80 210 L80 110 Z" fill="rgba(0,255,159,0.03)" stroke="rgba(0,255,159,0.15)" stroke-width="0.5"/>
+      <path d="M200 120 L240 140 L240 190 C240 225 200 250 200 250 C200 250 160 225 160 190 L160 140 Z" fill="rgba(0,255,159,0.08)" stroke="rgba(0,255,159,0.6)" stroke-width="1.5"/>
+      <rect x="185" y="178" width="30" height="24" rx="2" fill="none" stroke="rgba(0,255,159,0.9)" stroke-width="1.5"/>
+      <path d="M191 178 L191 172 C191 165 209 165 209 172 L209 178" fill="none" stroke="rgba(0,255,159,0.9)" stroke-width="1.5"/>
+      <circle cx="200" cy="190" r="3" fill="rgba(0,255,159,0.9)"/>
+      <ellipse cx="200" cy="380" rx="60" ry="12" fill="rgba(0,255,159,0.08)"/>
+    </svg>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div id="ticker">
+  <div class="ticker-label">🔴 Live Threats</div>
+  <div style="overflow:hidden;flex:1;">
+    <div class="ticker-track" id="tickerTrack"></div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SERVICES                                                      -->
+<!-- ============================================================ -->
+<section id="services">
+  <div class="section-header reveal">
+    <span class="section-tag">What We Do</span>
+    <h2 class="section-title">Core <span class="hl">Security</span> Modules</h2>
+    <p class="section-desc">Six battle-tested layers of defense forming an impenetrable security architecture.</p>
+  </div>
+  <div class="services-grid">
+    <div class="service-card reveal reveal-delay-1">
+      <div class="service-num">01</div>
+      <div class="service-icon">
+        <svg viewBox="0 0 52 52" fill="none"><path d="M26 4L44 12V24C44 35 26 48 26 48C26 48 8 35 8 24V12L26 4Z" stroke="#00ff9f" stroke-width="1.5"/><path d="M18 26L23 31L34 20" stroke="#00ff9f" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="service-name">Threat Detection</div>
+      <div class="service-desc">AI-powered behavioral analytics identify anomalies before they escalate into breaches. Real-time signals from 250+ threat feeds.</div>
+    </div>
+    <div class="service-card reveal reveal-delay-2">
+      <div class="service-num">02</div>
+      <div class="service-icon">
+        <svg viewBox="0 0 52 52" fill="none"><rect x="8" y="14" width="36" height="24" rx="2" stroke="#00eeff" stroke-width="1.5"/><path d="M20 14V10M32 14V10M16 26H36M16 32H28" stroke="#00eeff" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="service-name">SIEM Integration</div>
+      <div class="service-desc">Aggregate logs from every endpoint, cloud service, and network device into a single unified security dashboard.</div>
+    </div>
+    <div class="service-card reveal reveal-delay-3">
+      <div class="service-num">03</div>
+      <div class="service-icon">
+        <svg viewBox="0 0 52 52" fill="none"><circle cx="26" cy="26" r="16" stroke="#ff2d55" stroke-width="1.5"/><path d="M26 18V26L32 32" stroke="#ff2d55" stroke-width="2" stroke-linecap="round"/><circle cx="26" cy="26" r="3" fill="#ff2d55"/></svg>
+      </div>
+      <div class="service-name">Incident Response</div>
+      <div class="service-desc">Automated playbooks slash mean time to respond. Our SOC team deploys containment protocols within 90 seconds of detection.</div>
+    </div>
+    <div class="service-card reveal reveal-delay-1">
+      <div class="service-num">04</div>
+      <div class="service-icon">
+        <svg viewBox="0 0 52 52" fill="none"><path d="M10 26C10 26 18 18 26 18C34 18 42 26 42 26C42 26 34 34 26 34C18 34 10 26 10 26Z" stroke="#ffb800" stroke-width="1.5"/><circle cx="26" cy="26" r="5" stroke="#ffb800" stroke-width="1.5"/><circle cx="26" cy="26" r="2" fill="#ffb800"/></svg>
+      </div>
+      <div class="service-name">Vulnerability Scanning</div>
+      <div class="service-desc">Continuous CVE scanning across your entire attack surface. Prioritized remediation paths aligned with CVSS severity scores.</div>
+    </div>
+    <div class="service-card reveal reveal-delay-2">
+      <div class="service-num">05</div>
+      <div class="service-icon">
+        <svg viewBox="0 0 52 52" fill="none"><rect x="14" y="10" width="24" height="32" rx="2" stroke="#00ff9f" stroke-width="1.5"/><path d="M20 18H32M20 24H32M20 30H26" stroke="#00ff9f" stroke-width="1.5" stroke-linecap="round"/><path d="M32 32L38 38" stroke="#00ff9f" stroke-width="1.5" stroke-linecap="round"/><circle cx="38" cy="38" r="4" stroke="#00ff9f" stroke-width="1.5"/></svg>
+      </div>
+      <div class="service-name">Compliance Auditing</div>
+      <div class="service-desc">Stay ahead of SOC 2, ISO 27001, GDPR, and HIPAA. Automated evidence collection and audit-ready reporting.</div>
+    </div>
+    <div class="service-card reveal reveal-delay-3">
+      <div class="service-num">06</div>
+      <div class="service-icon">
+        <svg viewBox="0 0 52 52" fill="none"><path d="M26 8L40 16V28C40 38 26 46 26 46C26 46 12 38 12 28V16L26 8Z" stroke="#00eeff" stroke-width="1.5"/><line x1="20" y1="22" x2="32" y2="22" stroke="#00eeff" stroke-width="1.5"/><line x1="26" y1="16" x2="26" y2="36" stroke="#00eeff" stroke-width="1.5"/></svg>
+      </div>
+      <div class="service-name">Zero Trust Network</div>
+      <div class="service-desc">Never trust, always verify. Micro-segmentation and identity-based access control built for the modern distributed enterprise.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- THREAT MAP                                                    -->
+<!-- ============================================================ -->
+<section id="threat-map">
+  <div class="section-header reveal">
+    <span class="section-tag">Real-Time Intelligence</span>
+    <h2 class="section-title">Global <span class="hl">Threat</span> Activity</h2>
+    <p class="section-desc">Live attack vectors visualized across our protected network.</p>
+  </div>
+  <div class="map-container reveal">
+    <canvas id="map-canvas"></canvas>
+  </div>
+  <div class="map-legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#ff2d55;box-shadow:0 0 6px #ff2d55"></div><span class="legend-text">Critical Attack</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ffb800;box-shadow:0 0 6px #ffb800"></div><span class="legend-text">Medium Threat</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00ff9f;box-shadow:0 0 6px #00ff9f"></div><span class="legend-text">Blocked / Neutralized</span></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- STATS                                                         -->
+<!-- ============================================================ -->
+<section id="stats">
+  <div class="stats-grid">
+    <div class="stat-block reveal reveal-delay-1">
+      <span class="stat-big">2.4<span class="stat-unit">B+</span></span>
+      <div class="stat-desc">Threats Neutralized</div>
+    </div>
+    <div class="stat-block reveal reveal-delay-2">
+      <span class="stat-big">99.99<span class="stat-unit">%</span></span>
+      <div class="stat-desc">Detection Accuracy</div>
+    </div>
+    <div class="stat-block reveal reveal-delay-3">
+      <span class="stat-big">0.3<span class="stat-unit">ms</span></span>
+      <div class="stat-desc">Avg. Response Time</div>
+    </div>
+    <div class="stat-block reveal reveal-delay-4">
+      <span class="stat-big">147<span class="stat-unit">+</span></span>
+      <div class="stat-desc">Countries Covered</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- HOW IT WORKS                                                  -->
+<!-- ============================================================ -->
+<section id="how-it-works">
+  <div class="section-header reveal">
+    <span class="section-tag">Process</span>
+    <h2 class="section-title">How <span class="hl">Stackly</span> Works</h2>
+    <p class="section-desc">A five-stage defense pipeline that converts threat intelligence into actionable security outcomes.</p>
+  </div>
+  <div class="hiw-grid">
+    <div class="steps-container">
+      <div class="steps-line"></div>
+      <div class="step">
+        <div class="step-num-wrap"><div class="step-num">01</div></div>
+        <div class="step-content">
+          <div class="step-title">Ingest &amp; Normalize</div>
+          <p class="step-desc">Collect telemetry from endpoints, network devices, cloud APIs, and third-party feeds. All data normalized into a unified schema.</p>
+          <span class="step-badge">petabyte-scale ingestion</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num-wrap"><div class="step-num">02</div></div>
+        <div class="step-content">
+          <div class="step-title">AI Correlation Engine</div>
+          <p class="step-desc">ML models trained on 15 years of attack data correlate signals across millions of events to surface genuine threats with minimal false positives.</p>
+          <span class="step-badge">MITRE ATT&amp;CK aligned</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num-wrap"><div class="step-num">03</div></div>
+        <div class="step-content">
+          <div class="step-title">Risk Prioritization</div>
+          <p class="step-desc">Threats are scored dynamically based on asset criticality, attack confidence, and business context — so your team always knows what to tackle first.</p>
+          <span class="step-badge">dynamic CVSS scoring</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num-wrap"><div class="step-num">04</div></div>
+        <div class="step-content">
+          <div class="step-title">Automated Response</div>
+          <p class="step-desc">Pre-built and custom playbooks auto-contain threats: isolate hosts, revoke credentials, block IPs — all without human intervention.</p>
+          <span class="step-badge">SOAR-powered</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num-wrap"><div class="step-num">05</div></div>
+        <div class="step-content">
+          <div class="step-title">Continuous Learning</div>
+          <p class="step-desc">Every incident feeds back into the models. Your environment becomes uniquely hardened over time with battle-tested intelligence.</p>
+          <span class="step-badge">adaptive defense loop</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="threat-panel reveal">
+        <div class="threat-panel-label">// Current Threat Landscape</div>
+        <div class="threat-bar-wrap">
+          <div class="threat-bar-label"><span>Ransomware</span><span style="color:var(--neon-red)">CRITICAL</span></div>
+          <div class="threat-bar-track"><div class="threat-bar-fill" style="width:87%;background:linear-gradient(90deg,#ff2d55,#ff6b7a)"></div></div>
+        </div>
+        <div class="threat-bar-wrap">
+          <div class="threat-bar-label"><span>Phishing</span><span style="color:var(--neon-amber)">HIGH</span></div>
+          <div class="threat-bar-track"><div class="threat-bar-fill" style="width:72%;background:linear-gradient(90deg,#ffb800,#ffd166)"></div></div>
+        </div>
+        <div class="threat-bar-wrap">
+          <div class="threat-bar-label"><span>DDoS Attacks</span><span style="color:var(--neon-amber)">HIGH</span></div>
+          <div class="threat-bar-track"><div class="threat-bar-fill" style="width:65%;background:linear-gradient(90deg,#ffb800,#ffd166)"></div></div>
+        </div>
+        <div class="threat-bar-wrap">
+          <div class="threat-bar-label"><span>Insider Threats</span><span style="color:var(--neon-cyan)">MEDIUM</span></div>
+          <div class="threat-bar-track"><div class="threat-bar-fill" style="width:43%;background:linear-gradient(90deg,#00eeff,#66f2ff)"></div></div>
+        </div>
+        <div class="threat-bar-wrap">
+          <div class="threat-bar-label"><span>Supply Chain</span><span style="color:var(--neon-green)">LOW</span></div>
+          <div class="threat-bar-track"><div class="threat-bar-fill" style="width:28%;background:linear-gradient(90deg,#00ff9f,#66ffcc)"></div></div>
+        </div>
+      </div>
+      <div class="status-panel reveal">
+        <div class="threat-panel-label" style="color:var(--neon-cyan)">// Protection Status</div>
+        <div class="status-grid">
+          <div class="status-item">
+            <div class="status-val" style="color:var(--neon-green)">ACTIVE</div>
+            <div class="status-key">Shield Status</div>
+          </div>
+          <div class="status-item">
+            <div class="status-val" style="color:var(--neon-amber)">3</div>
+            <div class="status-key">Alerts Today</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- TERMINAL                                                      -->
+<!-- ============================================================ -->
+<section id="terminal-section">
+  <div class="section-header reveal">
+    <span class="section-tag">Real-Time Console</span>
+    <h2 class="section-title">Watch The <span class="hl">System</span> Work</h2>
+  </div>
+  <div class="terminal reveal" id="terminal">
+    <div class="terminal-bar">
+      <div class="t-dot t-red"></div>
+      <div class="t-dot t-amber"></div>
+      <div class="t-dot t-green"></div>
+      <span class="terminal-title">stackly@soc-alpha ~ threat-monitor v4.2.1</span>
+    </div>
+    <div class="terminal-body" id="terminalBody">
+      <span class="t-line"><span class="t-path">stackly@soc-alpha</span>:<span class="t-cmd">~</span>$ stackly monitor --live --all-threats</span>
+      <span class="t-line"><span class="t-ok">[✓]</span> Connected to threat intelligence mesh — 147 nodes online</span>
+      <span class="t-line"><span class="t-dim">[~]</span> Awaiting live events...</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- FEATURES                                                      -->
+<!-- ============================================================ -->
+<section id="features">
+  <div class="section-header reveal">
+    <span class="section-tag">Capabilities</span>
+    <h2 class="section-title">Platform <span class="hl">Features</span></h2>
+    <p class="section-desc">Everything your security team needs, built into a single pane of glass.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card reveal reveal-delay-1">
+      <div class="feature-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div>
+        <div class="feature-name">AI Threat Intelligence</div>
+        <div class="feature-desc">Models trained on petabytes of real-world attack telemetry detect novel threats in real time with sub-millisecond latency.</div>
+      </div>
+    </div>
+    <div class="feature-card reveal reveal-delay-2">
+      <div class="feature-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="10" rx="1"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div>
+        <div class="feature-name">Zero Trust Architecture</div>
+        <div class="feature-desc">Every request is verified — never assumed safe. Continuous authentication across all users, devices, and network segments.</div>
+      </div>
+    </div>
+    <div class="feature-card reveal reveal-delay-3">
+      <div class="feature-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <div>
+        <div class="feature-name">Real-Time Monitoring</div>
+        <div class="feature-desc">24/7 SOC with 0.3ms median response time. Every event is logged, correlated, and surfaced through a live operations dashboard.</div>
+      </div>
+    </div>
+    <div class="feature-card reveal reveal-delay-1">
+      <div class="feature-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+      </div>
+      <div>
+        <div class="feature-name">Advanced Analytics</div>
+        <div class="feature-desc">Behavioral baselines, anomaly scoring, and threat hunting dashboards give analysts the context they need to act decisively.</div>
+      </div>
+    </div>
+    <div class="feature-card reveal reveal-delay-2">
+      <div class="feature-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      </div>
+      <div>
+        <div class="feature-name">API Integrations</div>
+        <div class="feature-desc">500+ out-of-the-box connectors for major cloud providers, SIEMs, ticketing systems, and identity platforms.</div>
+      </div>
+    </div>
+    <div class="feature-card reveal reveal-delay-3">
+      <div class="feature-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      </div>
+      <div>
+        <div class="feature-name">Compliance Reporting</div>
+        <div class="feature-desc">Auto-generate audit-ready reports for SOC 2, ISO 27001, GDPR, HIPAA, and PCI-DSS with one click.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PRICING                                                       -->
+<!-- ============================================================ -->
+<section id="pricing">
+  <div class="section-header reveal">
+    <span class="section-tag">Plans</span>
+    <h2 class="section-title">Transparent <span class="hl">Pricing</span></h2>
+    <p class="section-desc">Scale protection as your organization grows. No hidden fees, no surprises.</p>
+  </div>
+  <div class="pricing-grid">
+    <div class="price-card reveal reveal-delay-1">
+      <div class="price-plan">Sentinel</div>
+      <div class="price-amount"><span class="dollar">$</span>199</div>
+      <div class="price-period">/ month · billed annually</div>
+      <ul class="price-features">
+        <li>Up to 50 endpoints</li>
+        <li>Core threat detection</li>
+        <li>SIEM integration (3 sources)</li>
+        <li>Email incident alerts</li>
+        <li>SOC 2 Type I reporting</li>
+        <li>8×5 support</li>
+      </ul>
+      <button class="price-btn price-btn-outline" onclick="openModal('signup')">Deploy Sentinel</button>
+    </div>
+    <div class="price-card featured reveal reveal-delay-2">
+      <div class="price-tag">Most Popular</div>
+      <div class="price-plan">Guardian</div>
+      <div class="price-amount"><span class="dollar">$</span>699</div>
+      <div class="price-period">/ month · billed annually</div>
+      <ul class="price-features">
+        <li>Up to 500 endpoints</li>
+        <li>AI-powered detection</li>
+        <li>Unlimited SIEM sources</li>
+        <li>Automated SOAR playbooks</li>
+        <li>Full compliance suite</li>
+        <li>24/7 SOC support</li>
+      </ul>
+      <button class="price-btn price-btn-filled" onclick="openModal('signup')">Deploy Guardian</button>
+    </div>
+    <div class="price-card reveal reveal-delay-3">
+      <div class="price-plan">Fortress</div>
+      <div class="price-amount" style="font-size:2rem">Custom</div>
+      <div class="price-period">enterprise · dedicated infrastructure</div>
+      <ul class="price-features">
+        <li>Unlimited endpoints</li>
+        <li>Dedicated AI cluster</li>
+        <li>Custom threat intel feeds</li>
+        <li>On-prem deployment option</li>
+        <li>Dedicated SOC team</li>
+        <li>SLA-backed 99.99% uptime</li>
+      </ul>
+      <button class="price-btn price-btn-outline" onclick="openModal('signup')">Contact Sales</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- TESTIMONIALS                                                  -->
+<!-- ============================================================ -->
+<section id="testimonials">
+  <div class="section-header reveal">
+    <span class="section-tag">Trust</span>
+    <h2 class="section-title">From The <span class="hl">Front Lines</span></h2>
+  </div>
+  <div class="testi-grid">
+    <div class="testi-card reveal reveal-delay-1">
+      <div class="testi-quote">"</div>
+      <p class="testi-text">Stackly detected a Cobalt Strike beacon our previous SIEM missed for three days. Response was automatic — the threat was contained before our analysts even woke up.</p>
+      <div class="testi-author">
+        <div class="testi-avatar">MR</div>
+        <div>
+          <div class="testi-name">Marcus Reyes</div>
+          <div class="testi-role">CISO · FinTech Global</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card reveal reveal-delay-2">
+      <div class="testi-quote">"</div>
+      <p class="testi-text">The compliance automation alone saved us 200+ hours during our SOC 2 audit. Zero false positives in six months — unheard of in this industry.</p>
+      <div class="testi-author">
+        <div class="testi-avatar">AK</div>
+        <div>
+          <div class="testi-name">Anika Krishnan</div>
+          <div class="testi-role">VP Security · MedCore Systems</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card reveal reveal-delay-3">
+      <div class="testi-quote">"</div>
+      <p class="testi-text">We were hit with a 3.2M rps DDoS attack at 2 AM. Stackly blocked it in 0.4 seconds. Our customers never noticed. That is what enterprise-grade means.</p>
+      <div class="testi-author">
+        <div class="testi-avatar">DL</div>
+        <div>
+          <div class="testi-name">David Liang</div>
+          <div class="testi-role">CTO · CloudScale Inc</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CTA SECTION                                                   -->
+<!-- ============================================================ -->
+<section id="cta-section">
+  <div class="cta-box reveal">
+    <div class="cta-title">Secure Your <span class="hl">Perimeter</span> Today</div>
+    <p class="cta-desc">Join 4,000+ organizations protecting their digital infrastructure with Stackly. Deploy in under 10 minutes.</p>
+    <div class="cta-form" id="ctaForm">
+      <input type="email" class="cta-email" id="ctaEmail" placeholder="operator@company.com">
+      <button class="cta-submit" onclick="handleCtaSubmit()">Deploy Now</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- FOOTER — FIX: Stackly button functional                      -->
+<!-- ============================================================ -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <span class="footer-logo">STACK<span>LY</span></span>
+      <p class="footer-tagline">Military-grade cybersecurity for the modern enterprise. Defending the digital frontier since 2017.</p>
+      <!-- FIX: Stackly button — real href, opens Stackly -->
+      <a href="404page.html" target="_blank" rel="noopener noreferrer" class="stackly-btn" title="Built with Stackly">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="10" width="14" height="2.5" rx="1" fill="currentColor" opacity="0.6"/>
+          <rect x="1" y="6"  width="14" height="2.5" rx="1" fill="currentColor" opacity="0.8"/>
+          <rect x="1" y="2"  width="14" height="2.5" rx="1" fill="currentColor"/>
+        </svg>
+        Built with Stackly
+      </a>
+    </div>
+
+    <div>
+      <div class="footer-col-title">Platform</div>
+      <ul class="footer-links">
+        <li><a href="404page.html">Services</a></li>
+        <li><a href="404page.html">Features</a></li>
+        <li><a href="404page.html">Pricing</a></li>
+        <li><a href="404page.html">How It Works</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="footer-col-title">Company</div>
+      <ul class="footer-links">
+        <li><a href="404page.html">About</a></li>
+        <li><a href="404page.html">Careers</a></li>
+        <li><a href="404page.html">Blog</a></li>
+        <li><a href="404page.html">Press</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="footer-col-title">Legal</div>
+      <ul class="footer-links">
+        <li><a href="404page.html">Privacy Policy</a></li>
+        <li><a href="404page.html">Terms of Service</a></li>
+        <li><a href="404page.html">Security</a></li>
+        <li><a href="404page.html">Cookie Policy</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2025 Stackly, Inc. All rights reserved. Defending 147+ nations.</div>
+    <div class="footer-socials">
+      <a class="social-btn" href="404page.html" aria-label="Twitter">𝕏</a>
+      <a class="social-btn" href="404page.html" aria-label="LinkedIn">in</a>
+      <a class="social-btn" href="404page.html" aria-label="GitHub">⌥</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ============================================================
+     JAVASCRIPT — All fixes applied
+     ============================================================ -->
+<script>
+/* ─── CUSTOM CURSOR ─── */
+const cursor    = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursorRing');
+let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
+
+if (window.matchMedia('(pointer: fine)').matches) {
+  document.addEventListener('mousemove', e => {
+    mouseX = e.clientX; mouseY = e.clientY;
+    cursor.style.left = mouseX + 'px';
+    cursor.style.top  = mouseY + 'px';
+  });
+  (function movRing() {
+    ringX += (mouseX - ringX) * 0.12;
+    ringY += (mouseY - ringY) * 0.12;
+    cursorRing.style.left = ringX + 'px';
+    cursorRing.style.top  = ringY + 'px';
+    requestAnimationFrame(movRing);
+  })();
+  document.querySelectorAll('a,button,.service-card,.feature-card,.testi-card,.price-card').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.transform = 'translate(-50%,-50%) scale(2)';
+      cursorRing.style.width = cursorRing.style.height = '60px';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.transform = 'translate(-50%,-50%) scale(1)';
+      cursorRing.style.width = cursorRing.style.height = '36px';
+    });
+  });
+}
+
+/* ─── HAMBURGER / MOBILE NAV ─── */
+const hamburger        = document.getElementById('hamburger');
+const mobileNavOverlay = document.getElementById('mobileNavOverlay');
+
+function toggleMobileNav() {
+  hamburger.classList.toggle('open');
+  mobileNavOverlay.classList.toggle('open');
+  document.body.style.overflow = mobileNavOverlay.classList.contains('open') ? 'hidden' : '';
+}
+
+hamburger.addEventListener('click', toggleMobileNav);
+hamburger.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') toggleMobileNav(); });
+
+/* FIX: mobile nav links close overlay + navigate */
+document.querySelectorAll('.mobile-nav-link').forEach(link => {
+  link.addEventListener('click', () => {
+    hamburger.classList.remove('open');
+    mobileNavOverlay.classList.remove('open');
+    document.body.style.overflow = '';
+  });
+});
+
+/* ─── BACK BUTTON — FIX: scrolls to top ─── */
+const backBtn = document.getElementById('mobileBackBtn');
+backBtn.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+// Show/hide based on scroll position
+window.addEventListener('scroll', () => {
+  backBtn.style.opacity = window.scrollY > 300 ? '1' : '0';
+  backBtn.style.pointerEvents = window.scrollY > 300 ? 'auto' : 'none';
+}, { passive: true });
+backBtn.style.opacity = '0';
+backBtn.style.transition = 'opacity 0.3s';
+
+/* ─── AUTH MODAL ─── */
+const authModal  = document.getElementById('authModal');
+const modalClose = document.getElementById('modalClose');
+
+function openModal(tab) {
+  authModal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  switchTab(tab || 'login');
+  // close mobile nav if open
+  hamburger.classList.remove('open');
+  mobileNavOverlay.classList.remove('open');
+}
+function closeModal() {
+  authModal.classList.remove('open');
+  document.body.style.overflow = '';
+  document.getElementById('modalSuccess').style.display = 'none';
+  document.getElementById('loginForm').style.display  = 'flex';
+  document.getElementById('signupForm').style.display = 'none';
+}
+
+modalClose.addEventListener('click', closeModal);
+authModal.addEventListener('click', e => { if (e.target === authModal) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function switchTab(tab) {
+  const loginForm  = document.getElementById('loginForm');
+  const signupForm = document.getElementById('signupForm');
+  const tabLogin   = document.getElementById('tabLogin');
+  const tabSignup  = document.getElementById('tabSignup');
+  document.getElementById('modalSuccess').style.display = 'none';
+  if (tab === 'login') {
+    loginForm.style.display  = 'flex';
+    signupForm.style.display = 'none';
+    tabLogin.classList.add('active');
+    tabSignup.classList.remove('active');
+  } else {
+    loginForm.style.display  = 'none';
+    signupForm.style.display = 'flex';
+    tabLogin.classList.remove('active');
+    tabSignup.classList.add('active');
+  }
+}
+
+function handleLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const pass  = document.getElementById('loginPass').value;
+  if (!email.includes('@') || pass.length < 3) {
+    document.getElementById('loginEmail').style.borderColor = '#ff2d55';
+    return;
+  }
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('modalSuccess').style.display = 'block';
+  document.getElementById('modalSuccess').textContent = '[✓] Login successful — Welcome back, Operator.';
+  setTimeout(closeModal, 2000);
+}
+function handleSignup() {
+  const name  = document.getElementById('signupName').value;
+  const email = document.getElementById('signupEmail').value;
+  const pass  = document.getElementById('signupPass').value;
+  if (!name || !email.includes('@') || pass.length < 8) {
+    document.getElementById('signupEmail').style.borderColor = '#ff2d55';
+    return;
+  }
+  document.getElementById('signupForm').style.display = 'none';
+  document.getElementById('modalSuccess').style.display = 'block';
+  document.getElementById('modalSuccess').textContent = '[✓] Account created — Check your inbox to verify access.';
+  setTimeout(closeModal, 2200);
+}
+
+// Wire up all login/signup trigger buttons
+['navLoginBtn','mobileLoginBtn'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => { e.preventDefault(); openModal('login'); });
+});
+['navSignupBtn','mobileSignupBtn'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => { e.preventDefault(); openModal('signup'); });
+});
+
+/* ─── PARTICLE CANVAS ─── */
+const pCanvas = document.getElementById('particle-canvas');
+const pCtx    = pCanvas.getContext('2d');
+let particles = [];
+function resizePCanvas() {
+  pCanvas.width  = pCanvas.offsetWidth;
+  pCanvas.height = pCanvas.offsetHeight;
+}
+function initParticles() {
+  particles = [];
+  const count = Math.floor((pCanvas.width * pCanvas.height) / 10000);
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * pCanvas.width,
+      y: Math.random() * pCanvas.height,
+      size: Math.random() * 1.5 + 0.3,
+      speedX: (Math.random() - 0.5) * 0.4,
+      speedY: (Math.random() - 0.5) * 0.4,
+      opacity: Math.random() * 0.5 + 0.1,
+      color: Math.random() > 0.7 ? '#00eeff' : '#00ff9f'
+    });
+  }
+}
+function animateParticles() {
+  pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+  particles.forEach((p, i) => {
+    p.x += p.speedX; p.y += p.speedY;
+    if (p.x < 0 || p.x > pCanvas.width)  p.speedX *= -1;
+    if (p.y < 0 || p.y > pCanvas.height) p.speedY *= -1;
+    pCtx.beginPath();
+    pCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    pCtx.fillStyle = p.color;
+    pCtx.globalAlpha = p.opacity;
+    pCtx.fill();
+    pCtx.globalAlpha = 1;
+    for (let j = i + 1; j < particles.length; j++) {
+      const q = particles[j];
+      const dist = Math.hypot(p.x - q.x, p.y - q.y);
+      if (dist < 120) {
+        pCtx.beginPath();
+        pCtx.moveTo(p.x, p.y); pCtx.lineTo(q.x, q.y);
+        pCtx.strokeStyle = '#00ff9f';
+        pCtx.globalAlpha = (1 - dist / 120) * 0.15;
+        pCtx.lineWidth = 0.5; pCtx.stroke();
+        pCtx.globalAlpha = 1;
+      }
+    }
+  });
+  requestAnimationFrame(animateParticles);
+}
+resizePCanvas(); initParticles(); animateParticles();
+window.addEventListener('resize', () => { resizePCanvas(); initParticles(); }, { passive: true });
+
+/* ─── TICKER ─── */
+const tickerEvents = [
+  { color:'dot-red',   text:'⚡ DDoS attack detected — 2.1M rps — origin: RU — AUTO-BLOCKED' },
+  { color:'dot-amber', text:'⚠ Credential stuffing attempt — 14K accounts targeted — MITIGATED' },
+  { color:'dot-green', text:'✓ SQL injection attempt blocked — src: 203.0.113.42 — NEUTRALIZED' },
+  { color:'dot-red',   text:'⚡ Zero-day exploit signature matched — CVE-2025-4821 — QUARANTINED' },
+  { color:'dot-amber', text:'⚠ Lateral movement detected — endpoint: WS-042 — ISOLATED' },
+  { color:'dot-green', text:'✓ Phishing campaign blocked — 847 malicious URLs — SINKHOLES ACTIVE' },
+  { color:'dot-red',   text:'⚡ Ransomware behavior detected — ENDPOINT LOCKED — IR ACTIVATED' },
+  { color:'dot-amber', text:'⚠ Data exfiltration pattern — 4.2GB outbound anomaly — BLOCKED' },
+];
+const track = document.getElementById('tickerTrack');
+[...tickerEvents, ...tickerEvents].forEach(ev => {
+  const el = document.createElement('span');
+  el.className = 'ticker-item';
+  el.innerHTML = `<span class="status-dot ${ev.color}"></span>${ev.text}`;
+  track.appendChild(el);
+});
+
+/* ─── THREAT MAP ─── */
+const mapCanvas = document.getElementById('map-canvas');
+const mapCtx    = mapCanvas.getContext('2d');
+let attackLines = [];
+const threatColors = ['#ff2d55','#ffb800','#00ff9f'];
+
+function resizeMap() {
+  mapCanvas.width  = mapCanvas.offsetWidth;
+  mapCanvas.height = mapCanvas.offsetHeight;
+}
+function spawnAttack() {
+  attackLines.push({
+    sx: Math.random() * mapCanvas.width,
+    sy: Math.random() * mapCanvas.height,
+    ex: Math.random() * mapCanvas.width,
+    ey: Math.random() * mapCanvas.height,
+    progress: 0,
+    color: threatColors[Math.floor(Math.random() * 3)],
+    speed: 0.008 + Math.random() * 0.015,
+    trail: []
+  });
+}
+let worldDotCache = null;
+function getWorldDotCanvas() {
+  if (worldDotCache && worldDotCache.width === mapCanvas.width) return worldDotCache;
+  worldDotCache = document.createElement('canvas');
+  worldDotCache.width  = mapCanvas.width;
+  worldDotCache.height = mapCanvas.height;
+  const c = worldDotCache.getContext('2d');
+  const dotCols = 70, dotRows = 30;
+  const cw = worldDotCache.width / dotCols, ch = worldDotCache.height / dotRows;
+  for (let r = 0; r < dotRows; r++)
+    for (let co = 0; co < dotCols; co++)
+      if (((co * 9301 + r * 49297 + 233280) % 233280) / 233280 < 0.42) {
+        c.beginPath();
+        c.arc(co * cw + cw / 2, r * ch + ch / 2, 1.2, 0, Math.PI * 2);
+        c.fillStyle = 'rgba(0,255,159,0.15)'; c.fill();
+      }
+  return worldDotCache;
+}
+function animateMap() {
+  mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+  mapCtx.drawImage(getWorldDotCanvas(), 0, 0);
+  if (Math.random() < 0.04) spawnAttack();
+  attackLines = attackLines.filter(l => l.progress <= 1.1);
+  attackLines.forEach(l => {
+    l.progress += l.speed;
+    const t = Math.min(l.progress, 1);
+    const midX = (l.sx + l.ex) / 2, midY = Math.min(l.sy, l.ey) - 60;
+    const qx = l.sx + 2*t*(midX-l.sx) + t*t*(l.ex-2*midX+l.sx);
+    const qy = l.sy + 2*t*(midY-l.sy) + t*t*(l.ey-2*midY+l.sy);
+    l.trail.push({ x: qx, y: qy });
+    if (l.trail.length > 20) l.trail.shift();
+    if (l.trail.length > 1) {
+      mapCtx.beginPath(); mapCtx.moveTo(l.trail[0].x, l.trail[0].y);
+      l.trail.forEach(pt => mapCtx.lineTo(pt.x, pt.y));
+      mapCtx.strokeStyle = l.color; mapCtx.lineWidth = 1.5;
+      mapCtx.globalAlpha = 0.7; mapCtx.shadowBlur = 6; mapCtx.shadowColor = l.color;
+      mapCtx.stroke(); mapCtx.shadowBlur = 0; mapCtx.globalAlpha = 1;
+    }
+    mapCtx.beginPath(); mapCtx.arc(qx, qy, 3, 0, Math.PI*2);
+    mapCtx.fillStyle = l.color; mapCtx.shadowBlur = 10; mapCtx.shadowColor = l.color;
+    mapCtx.fill(); mapCtx.shadowBlur = 0;
+    if (l.progress >= 1) {
+      const r2 = (l.progress - 1) * 40;
+      mapCtx.beginPath(); mapCtx.arc(l.ex, l.ey, r2, 0, Math.PI*2);
+      mapCtx.strokeStyle = l.color; mapCtx.globalAlpha = Math.max(0, 1-(l.progress-1));
+      mapCtx.lineWidth = 1; mapCtx.stroke(); mapCtx.globalAlpha = 1;
+    }
+  });
+  requestAnimationFrame(animateMap);
+}
+resizeMap(); animateMap();
+window.addEventListener('resize', () => { resizeMap(); worldDotCache = null; }, { passive: true });
+
+/* ─── SCROLL REVEAL ─── */
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+const stepObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.15 });
+document.querySelectorAll('.step').forEach(el => stepObs.observe(el));
+
+/* ─── TERMINAL ─── */
+const termBody = document.getElementById('terminalBody');
+const liveEvents = [
+  '<span class="t-ok">[+]</span> <span class="t-dim">11:42:07</span> Analyzing 148,327 events/sec — nominal',
+  '<span class="t-warn">[!]</span> <span class="t-dim">11:42:09</span> Anomaly detected — user: admin@corp.com — unusual login time',
+  '<span class="t-ok">[+]</span> <span class="t-dim">11:42:09</span> Adaptive MFA challenge issued — pending verification',
+  '<span class="t-ok">[+]</span> <span class="t-dim">11:42:11</span> Threat signature match — Cobalt Strike beacon — C2: 45.33.32.156',
+  '<span class="t-err">[✗]</span> <span class="t-dim">11:42:11</span> BLOCKING C2 traffic — firewall rule 9921 activated',
+  '<span class="t-ok">[+]</span> <span class="t-dim">11:42:12</span> Playbook PB-044 triggered — host WS-031 isolated',
+  '<span class="t-ok">[+]</span> <span class="t-dim">11:42:14</span> Memory dump collected — artifact ID: ART-20250603-0442',
+  '<span class="t-warn">[!]</span> <span class="t-dim">11:42:16</span> Lateral movement attempt — src: WS-031 → dst: DC-01 — BLOCKED',
+  '<span class="t-ok">[+]</span> <span class="t-dim">11:42:17</span> IR ticket #INC-4821 created — P1 — SOC analyst paged',
+  '<span class="t-ok">[+]</span> <span class="t-dim">11:42:20</span> Threat contained — scope: 1 endpoint — blast radius: minimal',
+  '<span class="t-ok">[✓]</span> <span class="t-dim">11:42:21</span> All clear — resuming normal monitoring cadence',
+];
+let lineIdx = 0;
+function addTermLine() {
+  if (lineIdx < liveEvents.length) {
+    const span = document.createElement('span');
+    span.className = 't-line'; span.innerHTML = liveEvents[lineIdx++];
+    termBody.appendChild(span);
+    termBody.scrollTop = termBody.scrollHeight;
+    setTimeout(addTermLine, 800 + Math.random() * 600);
+  } else {
+    setTimeout(() => { termBody.innerHTML = `<span class="t-line"><span class="t-path">stackly@soc-alpha</span>:<span class="t-cmd">~</span>$ stackly monitor --live --all-threats</span><span class="t-line"><span class="t-ok">[✓]</span> Connected — 147 nodes online</span>`; lineIdx = 0; setTimeout(addTermLine, 1000); }, 3000);
+  }
+}
+const termObs = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) { addTermLine(); termObs.disconnect(); }
+}, { threshold: 0.3 });
+termObs.observe(document.getElementById('terminal'));
+
+/* ─── CTA FORM ─── */
+function handleCtaSubmit() {
+  const email = document.getElementById('ctaEmail').value;
+  if (!email || !email.includes('@')) {
+    document.getElementById('ctaEmail').style.borderColor = '#ff2d55';
+    return;
+  }
+  openModal('signup');
+}
+
+/* FIX: Prevent auto-scroll — remove any scroll-jacking.
+   The only scroll events are the passive back-button listener above.
+   No setInterval or setTimeout calls scroll the page automatically. */
+</script>
+</body>
+</html>
