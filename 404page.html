@@ -14,18 +14,21 @@
 }
 
 body{
-    height:100vh;
+    min-height:100vh;
     display:flex;
     justify-content:center;
     align-items:center;
     background:#000;
     color:#fff;
     overflow:hidden;
+    padding:20px;
 }
 
 .container{
     text-align:center;
     animation:fadeIn 1.5s ease;
+    position:relative;
+    z-index:2;
 }
 
 h1{
@@ -47,6 +50,13 @@ p{
     font-size:1.1rem;
 }
 
+.buttons{
+    display:flex;
+    justify-content:center;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
 .btn{
     display:inline-block;
     padding:12px 30px;
@@ -56,6 +66,9 @@ p{
     border-radius:30px;
     font-weight:bold;
     transition:0.4s;
+    border:none;
+    cursor:pointer;
+    font-size:1rem;
 }
 
 .btn:hover{
@@ -126,8 +139,28 @@ p{
         transform:translateY(0);
     }
 }
+
+@media(max-width:600px){
+    h1{
+        font-size:6rem;
+    }
+
+    h2{
+        font-size:1.5rem;
+    }
+
+    p{
+        font-size:1rem;
+    }
+
+    .btn{
+        width:100%;
+        max-width:220px;
+    }
+}
 </style>
 </head>
+
 <body>
 
 <div class="circle"></div>
@@ -138,7 +171,11 @@ p{
     <h1>404</h1>
     <h2>Page Not Found</h2>
     <p>Sorry, the page you are looking for does not exist.</p>
-   
+
+    <div class="buttons">
+        <button class="btn" onclick="history.back()">← Go Back</button>
+        <a href="index.html" class="btn">Home</a>
+    </div>
 </div>
 
 </body>
